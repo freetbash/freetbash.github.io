@@ -201,7 +201,7 @@
 
     // 获取文件夹中的音乐列表
     // 获取文件夹中的音乐列表
-function generatePlaylist() {
+    function generatePlaylist() {
   // 获取文件夹中的所有音乐文件
   fetch(folderPath)
     .then(response => response.blob())
@@ -210,7 +210,7 @@ function generatePlaylist() {
       reader.onload = function () {
         var html = new DOMParser().parseFromString(reader.result, 'text/html');
         var links = html.querySelectorAll('a');
-        var playlistHTML = '<tr><th>ID</th><th>歌曲</th></tr>';
+        var playlistHTML = '<tr><th>ID (歌曲总数)</th><th>歌曲</th></tr>';
         var id = 1;
 
         links.forEach(link => {
@@ -225,10 +225,16 @@ function generatePlaylist() {
         });
 
         playlistContainer.innerHTML = playlistHTML;
+
+        // 更新歌曲总数
+        var totalSongs = playlist.length;
+        var idHeader = document.querySelector('.playlist-container th:first-child');
+        idHeader.textContent = 'ID (' + totalSongs + ')';
       };
       reader.readAsText(blob);
     });
 }
+
 
 
     // 播放选定的音乐

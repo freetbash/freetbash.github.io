@@ -8,99 +8,75 @@
     .player-container {
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding-bottom: 50px; /* 控制栏的高度 */
     }
-    
+
     .controls-container {
-      margin-top: auto;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: #f0f0f0;
+      width: 100%;
     }
-    .controls-container {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  background-color: #f0f0f0;
-}
 
-.controls-container .current-track {
-  margin-right: 10px;
-}
+    .controls-container .progress-bar-container {
+      flex-grow: 1;
+      height: 4px;
+      background-color: #f0f0f0;
+      position: relative;
+      cursor: pointer;
+    }
 
-.controls-container .controls {
-  display: flex;
-  align-items: center;
-  margin-right: 10px;
-}
+    .controls-container .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0;
+      background-color: #31c27c;
+      transition: width 0.3s ease;
+    }
 
-.controls-container .controls button {
-  background-color: transparent;
-  border: none;
-  margin-right: 10px;
-  outline: none;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
+    .controls-container .progress-bar-container:hover .progress-bar {
+      background-color: #217355;
+    }
 
-.controls-container .controls button:hover {
-  color: #31c27c;
-}
+    .controls-container .progress-bar-container .progress-thumb {
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      width: 12px;
+      height: 12px;
+      background-color: #31c27c;
+      border-radius: 50%;
+      cursor: pointer;
+      pointer-events: none;
+      transition: background-color 0.3s ease;
+    }
 
-.controls-container .progress-bar-container {
-  flex-grow: 1;
-  height: 4px;
-  background-color: #f0f0f0;
-  position: relative;
-  cursor: pointer;
-}
+    .controls-container .progress-bar-container:hover .progress-bar .progress-thumb {
+      background-color: #217355;
+    }
 
-.controls-container .progress-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 0;
-  background-color: #31c27c;
-  transition: width 0.3s ease;
-}
+    .controls-container input[type="text"] {
+      width: 40px;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      padding: 2px;
+      margin-left: 5px;
+      text-align: center;
+    }
 
-.controls-container .progress-bar-container:hover .progress-bar {
-  background-color: #217355;
-}
+    .controls-container input[type="text"]:disabled {
+      background-color: transparent;
+    }
 
-.controls-container .progress-bar-container .progress-bar .progress-thumb {
-  position: absolute;
-  top: -6px;
-  left: -6px;
-  width: 12px;
-  height: 12px;
-  background-color: #31c27c;
-  border-radius: 50%;
-  cursor: pointer;
-  pointer-events: none;
-  transition: background-color 0.3s ease;
-}
-
-.controls-container .progress-bar-container:hover .progress-bar .progress-thumb {
-  background-color: #217355;
-}
-
-.controls-container input[type="text"] {
-  width: 40px;
-  border: none;
-  outline: none;
-  font-size: 12px;
-  padding: 2px;
-  margin-left: 5px;
-  text-align: center;
-}
-
-.controls-container input[type="text"]:disabled {
-  background-color: transparent;
-}
-
-    
-
-    /* 新增的 CSS 样式 */
     .playlist-container {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -136,25 +112,6 @@
     .playlist-container a:hover {
       text-decoration: underline;
     }
-    .player-container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      margin: 0;
-      padding-bottom: 50px; /* 控制栏的高度 */
-    }
-
-    .controls-container {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      background-color: #f0f0f0;
-      width: 100%;
-    }
-
   </style>
 </head>
 <body>
@@ -162,12 +119,11 @@
     <table class="playlist-container" id="playlist-container">
       <!-- 音乐列表将动态生成在这里 -->
     </table>
-    
 
     <div class="controls-container">
-            <div class="progress-bar-container" onclick="seek(event)">
-                <div class="progress-bar" id="progress-bar"></div>
-              </div>
+      <div class="progress-bar-container" onclick="seek(event)">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
       <div>
         <label for="current-progress">进度:</label>
         <input type="text" id="current-progress" disabled>
@@ -180,7 +136,7 @@
       <button onclick="pause()">暂停</button>
       <button onclick="fastForward(10)">快进 10 秒</button>
       <button onclick="rewind(10)">快退 10 秒</button>
-      
+      <td><input type="range" class="volume-slider" min="0" max="1" step="0.1" value="1" oninput="adjustVolume(' + music.id + ', this.value)"></td></tr>
       <div class="current-track" id="current-track"></div>
     </div>
   </div>
@@ -200,42 +156,36 @@
     var isSeeking = false; // 是否正在拖动进度条
 
     // 获取文件夹中的音乐列表
-    // 获取文件夹中的音乐列表
     function generatePlaylist() {
-  // 获取文件夹中的所有音乐文件
-  fetch(folderPath)
-    .then(response => response.blob())
-    .then(blob => {
-      var reader = new FileReader();
-      reader.onload = function () {
-        var html = new DOMParser().parseFromString(reader.result, 'text/html');
-        var links = html.querySelectorAll('a');
-        var playlistHTML = '<tr><th>ID (歌曲总数)</th><th>歌曲</th></tr>';
-        var id = 1;
+      // 获取文件夹中的所有音乐文件
+      fetch(folderPath)
+        .then(response => response.text())
+        .then(data => {
+          var parser = new DOMParser();
+          var html = parser.parseFromString(data, 'text/html');
+          var links = html.querySelectorAll('a');
+          var playlistHTML = '<tr><th>ID (歌曲总数)</th><th>歌曲</th></tr>';
+          var id = 1;
 
-        links.forEach(link => {
-          var fileName = link.getAttribute('href');
-          if (fileName.endsWith(fileExtension)) {
-            var musicName = decodeURIComponent(fileName.slice(0, -fileExtension.length));
-            var filePath = folderPath + fileName;
-            playlist.push({ id: id, name: musicName, path: filePath });
-            playlistHTML += '<tr><td>' + id + '</td><td><a href="#" onclick="playMusic(' + id + ')">' + musicName + '</a></td></tr>';
-            id++;
-          }
+          links.forEach(link => {
+            var fileName = link.getAttribute('href');
+            if (fileName.endsWith(fileExtension)) {
+              var musicName = decodeURIComponent(fileName.slice(0, -fileExtension.length));
+              var filePath = folderPath + fileName;
+              playlist.push({ id: id, name: musicName, path: filePath });
+              playlistHTML += '<tr><td>' + id + '</td><td><a href="#" onclick="playMusic(' + id + ')">' + musicName + '</a></td></tr>';
+              id++;
+            }
+          });
+
+          playlistContainer.innerHTML = playlistHTML;
+
+          // 更新歌曲总数
+          var totalSongs = playlist.length;
+          var idHeader = document.querySelector('.playlist-container th:first-child');
+          idHeader.textContent = 'ID (' + totalSongs + ')';
         });
-
-        playlistContainer.innerHTML = playlistHTML;
-
-        // 更新歌曲总数
-        var totalSongs = playlist.length;
-        var idHeader = document.querySelector('.playlist-container th:first-child');
-        idHeader.textContent = 'ID (' + totalSongs + ')';
-      };
-      reader.readAsText(blob);
-    });
-}
-
-
+    }
 
     // 播放选定的音乐
     function playMusic(id) {
@@ -243,7 +193,7 @@
       currentIndex = index;
       audioPlayer.src = playlist[currentIndex].path;
       audioPlayer.play();
-      document.title = playlist[currentIndex].name + " ("+(currentIndex+1)+")";
+      document.title = playlist[currentIndex].name + " (" + (currentIndex + 1) + ")";
       updateCurrentTrack();
     }
 
@@ -317,24 +267,29 @@
     window.addEventListener('load', generatePlaylist);
 
     // 监听音频的时间更新事件来更新进度条和当前进度
-    audioPlayer.addEventListener('timeupdate', function() {
+    audioPlayer.addEventListener('timeupdate', function () {
       if (!isSeeking) {
         updateProgressBar();
       }
     });
 
     // 监听鼠标按下和释放事件来判断是否正在拖动进度条
-    progressBar.addEventListener('mousedown', function() {
+    progressBar.addEventListener('mousedown', function () {
       isSeeking = true;
     });
-    progressBar.addEventListener('mouseup', function() {
+    progressBar.addEventListener('mouseup', function () {
       isSeeking = false;
     });
 
     // 监听音频播放结束事件来自动播放下一首
-    audioPlayer.addEventListener('ended', function() {
+    audioPlayer.addEventListener('ended', function () {
       playNext();
     });
+
+    function adjustVolume(id, volume) {
+      var index = id - 1; // Subtract 1 to match array index
+      audioPlayer.volume = volume;
+    }
   </script>
 </body>
 </html>

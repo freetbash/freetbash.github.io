@@ -181,31 +181,36 @@
     var isSeeking = false; // 是否正在拖动进度条
 
     // 获取文件夹中的音乐列表
-    function generatePlaylist() {
-      // 获取文件夹中的所有音乐文件
-      fetch(folderPath)
-        .then(response => response.text())
-        .then(data => {
-          var parser = new DOMParser();
-          var html = parser.parseFromString(data, 'text/html');
-          var links = html.querySelectorAll('a');
-          var playlistHTML = '<tr><th>ID</th><th>歌曲</th></tr>';
-          var id = 1;
+    // 获取文件夹中的音乐列表
+function generatePlaylist() {
+  // 获取文件夹中的所有音乐文件
+  fetch(folderPath)
+    .then(response => response.blob())
+    .then(blob => {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var html = new DOMParser().parseFromString(reader.result, 'text/html');
+        var links = html.querySelectorAll('a');
+        var playlistHTML = '<tr><th>ID</th><th>歌曲</th></tr>';
+        var id = 1;
 
-          links.forEach(link => {
-            var fileName = link.getAttribute('href');
-            if (fileName.endsWith(fileExtension)) {
-              var musicName = fileName.slice(0, -fileExtension.length);
-              var filePath = folderPath + fileName;
-              playlist.push({ id: id, name: musicName, path: filePath });
-              playlistHTML += '<tr><td>' + id + '</td><td><a href="#" onclick="playMusic(' + id + ')">' + musicName + '</a></td></tr>';
-              id++;
-            }
-          });
-
-          playlistContainer.innerHTML = playlistHTML;
+        links.forEach(link => {
+          var fileName = link.getAttribute('href');
+          if (fileName.endsWith(fileExtension)) {
+            var musicName = decodeURIComponent(fileName.slice(0, -fileExtension.length));
+            var filePath = folderPath + fileName;
+            playlist.push({ id: id, name: musicName, path: filePath });
+            playlistHTML += '<tr><td>' + id + '</td><td><a href="#" onclick="playMusic(' + id + ')">' + musicName + '</a></td></tr>';
+            id++;
+          }
         });
-    }
+
+        playlistContainer.innerHTML = playlistHTML;
+      };
+      reader.readAsText(blob);
+    });
+}
+
 
     // 播放选定的音乐
     function playMusic(id) {

@@ -25,6 +25,7 @@
       background-color: #f0f0f0;
       width: 100%;
     }
+     
 
     .controls-container .progress-bar-container {
       flex-grow: 1;
@@ -377,8 +378,38 @@
   audioPlayer.addEventListener('ended', function () {
     playNext();
   });
+// 暂停/播放控制
+document.addEventListener('keydown', function(event) {
+      if (event.code === 'Space') {
+          event.preventDefault(); // 阻止默认的页面滚动行为
+        if (audioPlayer.paused) {
+          play();
+        } else {
+          pause();
+        }
+      }
+    });
+
+    // 进度控制
+    document.addEventListener('keydown', function(event) {
+      if (event.code === 'ArrowLeft') {
+        rewind(10);
+      } else if (event.code === 'ArrowRight') {
+        fastForward(10);
+      }
+    });
+
+    // 音量控制
+document.addEventListener('keydown', function(event) {
+  if (event.code === 'ArrowUp') {
+    adjustVolume(currentIndex + 1, audioPlayer.volume + 0.1);
+  } else if (event.code === 'ArrowDown') {
+    adjustVolume(currentIndex + 1, audioPlayer.volume - 0.1);
+  }
+});
 
   function adjustVolume(id, volume) {
+    console.log(id);
     var index = id - 1; // Subtract 1 to match array index
     audioPlayer.volume = volume;
   }
